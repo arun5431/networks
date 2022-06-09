@@ -1,0 +1,147 @@
+###fragmenting####
+
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Jun  8 18:58:42 2022
+
+@author: Arun Prasath
+"""
+
+
+
+def d(a,mtu):#get input a and mtu
+        fragment=[]
+        if a[1] <= mtu:
+            fragment.append(a)
+            return fragment
+        k=list(a)
+        k[1]=mtu
+        a[1]=a[1]-mtu
+        fragment.append(k)
+        tmp=list(k);
+        while True:
+            if a[1] <= mtu:
+                a[0]=tmp[0]+int(mtu/8)
+                fragment.append(a)
+                return fragment
+            k=list(a)
+            k[0]=tmp[0]+int(mtu/8)
+            k[1]=mtu
+            a[1]=a[1]-mtu
+            fragment.append(k)
+            tmp=list(k)
+loop=d([0,1780],1480)
+print(loop)
+print(d(loop[0],552))
+print(d(loop[1],552))
+# print(d(k[2],552))
+
+mtuli=[1780,480]
+nr=2
+       
+
+###link state Routing#### 
+class Graph():
+    # A constructor to iniltialize the values
+    def __init__(self, nodes):
+        #distance array initialization
+        self.distArray = [0 for i in range(nodes)]
+        #visited nodes initialization
+        self.vistSet = [0 for i in range(nodes)]
+        #initializing the number of nodes
+        self.V = nodes
+        #initializing the infinity value
+        self.INF = 1000000
+        #initializing the graph matrix
+        self.graph = [[0 for column in range(nodes)]  
+                    for row in range(nodes)]
+   
+    def dijkstra(self, srcNode):
+        for i in range(self.V):
+          #initialise the distances to infinity first
+          self.distArray[i] = self.INF
+          #set the visited nodes set to false for each node
+          self.vistSet[i] = False
+        #initialise the first distance to 0
+        self.distArray[srcNode] = 0
+        for i in range(self.V):
+ 
+            # Pick the minimum distance node from  
+            # the set of nodes not yet processed.  
+            # u is always equal to srcNode in first iteration
+            u = self.minDistance(self.distArray, self.vistSet)
+ 
+            # Put the minimum distance node in the  
+            # visited nodes set
+            self.vistSet[u] = True
+ 
+             # Update dist[v] only if is not in vistSet, there is an edge from
+            # u to v, and total weight of path from src to  v through u is
+            # smaller than current value of dist[v]
+            for v in range(self.V):
+                if self.graph[u][v] > 0 and self.vistSet[v] == False and self.distArray[v] > self.distArray[u] + self.graph[u][v]:
+                        self.distArray[v] = self.distArray[u] + self.graph[u][v]
+ 
+        self.printSolution(self.distArray)
+
+    #A utility function to find the node with minimum distance value, from
+    # the set of nodes not yet included in shortest path tree
+    def minDistance(self, distArray, vistSet):
+ 
+        # Initilaize minimum distance for next node
+        min = self.INF
+ 
+        # Search not nearest node not in the  
+        # unvisited nodes
+        for v in range(self.V):
+            if distArray[v] < min and vistSet[v] == False:
+                min = distArray[v]
+                min_index = v
+ 
+        return min_index
+
+    def printSolution(self, distArray):
+        print ("Node \tDistance from 0")
+        for i in range(self.V):
+            print (i, "\t", distArray[i])
+#Display our table
+ourGraph = Graph(7)
+ourGraph.graph = [[0, 2, 6, 0, 0, 0, 0],
+        [2, 0, 0, 5, 0, 0, 0],
+        [6, 6, 0, 8, 0, 0, 0],
+        [0, 0, 8, 0, 10, 15, 0],
+        [0, 0, 0, 10, 0, 6, 2],
+        [0, 0, 0, 15, 6, 0, 6],
+        [0, 0, 0, 0, 2, 6, 0],
+        ];
+ 
+ourGraph.dijkstra(0)
+
+
+
+####webproxy###
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import requests
+
+user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:100.0) Gecko/20100101 Firefox/100.0'
+headers={'User-Agent':user_agent}
+domain = ""
+
+class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        global domain
+        self.send_response(200)
+        url = self.path[1:]
+        if 'http' in url:
+            domain = url
+        else:
+            if domain:
+                url = domain+url
+        x = requests.get(url,headers=headers)
+       
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+        self.wfile.write(x.text.encode("utf-8"))
+
+with HTTPServer(('', 8000), handler) as server:
+    server.serve_forever()
